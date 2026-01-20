@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web/page_viewed@1",
+  "title": "Page Viewed Event",
+  "description": "Fired when a user views a page",
+  "type": "object",
+  "required": ["page", "title"],
+  "properties": {
+    "page": {
+      "type": "string",
+      "description": "Page path (e.g., /home, /products/123)",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "description": "Page title",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string",
+      "description": "Page category (e.g., landing, product, checkout)"
+    },
+    "properties": {
+      "type": "object",
+      "description": "Additional page-specific properties",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

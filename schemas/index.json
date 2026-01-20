@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Analytics Schema Registry",
+  "description": "Maps schema IDs to schema file paths",
+  "type": "object",
+  "schemas": {
+    "web/page_viewed@1": {
+      "file": "web/page_viewed@1.schema.json",
+      "domain": "web",
+      "eventName": "page_viewed",
+      "version": 1,
+      "owner": "Platform Team"
+    },
+    "checkout/payment_submitted@1": {
+      "file": "checkout/payment_submitted@1.schema.json",
+      "domain": "checkout",
+      "eventName": "payment_submitted",
+      "version": 1,
+      "owner": "Commerce Team"
+    }
+  }
+}
