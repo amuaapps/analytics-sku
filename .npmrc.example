@@ -1,0 +1,10 @@
+# GitHub Packages Configuration
+# Copy this file to .npmrc and configure for your environment
+
+# Scope the @amuaapps packages to GitHub Packages registry
+@amuaapps:registry=https://npm.pkg.github.com
+
+# Authentication token (replace with your personal access token)
+# Generate at: https://github.com/settings/tokens
+# Required scopes: read:packages, write:packages (for publishing)
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
