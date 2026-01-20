@@ -1,0 +1,36 @@
+# CODEOWNERS - Domain ownership for analytics schemas
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owners for core infrastructure
+* @amuaapps/platform-team
+
+# Core tracking API and transport
+/src/core/ @amuaapps/platform-team
+/src/taxonomy/ @amuaapps/platform-team
+
+# Web domain events - Platform Team
+/schemas/web/ @amuaapps/platform-team
+/src/generated/web_*.ts @amuaapps/platform-team
+
+# Checkout domain events - Commerce Team
+/schemas/checkout/ @amuaapps/commerce-team
+/src/generated/checkout_*.ts @amuaapps/commerce-team
+
+# User domain events - Identity Team
+/schemas/user/ @amuaapps/identity-team
+/src/generated/user_*.ts @amuaapps/identity-team
+
+# Product domain events - Catalog Team
+/schemas/product/ @amuaapps/catalog-team
+/src/generated/product_*.ts @amuaapps/catalog-team
+
+# Schema registry index requires platform team approval
+/schemas/index.json @amuaapps/platform-team
+
+# Documentation changes require platform team review
+/docs/ @amuaapps/platform-team
+/README.md @amuaapps/platform-team
+
+# CI/CD and infrastructure
+/.github/ @amuaapps/platform-team
+/scripts/ @amuaapps/platform-team
