@@ -37,5 +37,12 @@ module.exports = {
     node: true,
     es2022: true,
   },
-  ignorePatterns: ["dist", "node_modules", "*.config.ts", "*.config.js"],
+  ignorePatterns: ["dist", "node_modules", "*.config.ts", "*.config.js", "eslint-rules"],
+  settings: {
+    "import/resolver": {
+      node: {
+        extensions: [".js", ".ts"],
+      },
+    },
+  },
 };

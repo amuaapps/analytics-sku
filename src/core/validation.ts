@@ -26,7 +26,7 @@ function loadSchema(schemaId: string): ValidateFunction {
   
   try {
     const schemaContent = readFileSync(schemaPath, "utf-8");
-    const schema = JSON.parse(schemaContent);
+    const schema = JSON.parse(schemaContent) as Record<string, unknown>;
     const validate = ajv.compile(schema);
     schemaCache.set(schemaId, validate);
     return validate;
