@@ -58,8 +58,7 @@ export function createTransport(options: TransportOptions = {}): Transport {
         return sendWithRetry(event, attempt + 1);
       }
 
-      const err =
-        error instanceof Error ? error : new Error(String(error));
+      const err = error instanceof Error ? error : new Error(String(error));
       if (onError) {
         onError(err, event);
       }

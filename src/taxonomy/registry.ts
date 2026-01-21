@@ -1,5 +1,8 @@
 import type { EventDefinition } from "./types.js";
-import type { PageViewedEvent, PaymentSubmittedEvent } from "../generated/index.js";
+import type {
+  PageViewedEvent,
+  PaymentSubmittedEvent,
+} from "../generated/index.js";
 
 export const eventRegistry = {
   "web.page_viewed@1": {

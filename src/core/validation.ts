@@ -23,7 +23,7 @@ function loadSchema(schemaId: string): ValidateFunction {
   }
 
   const schemaPath = join(schemasDir, `${schemaId}.schema.json`);
-  
+
   try {
     const schemaContent = readFileSync(schemaPath, "utf-8");
     const schema = JSON.parse(schemaContent) as Record<string, unknown>;

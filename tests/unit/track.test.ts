@@ -35,9 +35,13 @@ describe("track", () => {
       domain: "test",
     };
 
-    const envelope = track(eventDef, {}, {
-      context: { locale: "en-US" },
-    });
+    const envelope = track(
+      eventDef,
+      {},
+      {
+        context: { locale: "en-US" },
+      }
+    );
 
     expect(envelope.context.locale).toBe("en-US");
   });
