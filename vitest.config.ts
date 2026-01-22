@@ -15,6 +15,8 @@ export default defineConfig({
         "**/*.config.js",
         "src/generated/",
         "scripts/",
+        ".eslintrc.cjs",
+        "eslint-rules/",
       ],
       thresholds: {
         lines: 80,
