@@ -1,6 +1,6 @@
 # Publishing to GitHub Packages
 
-This document explains how to publish and consume the analytics-sku package from GitHub Packages.
+This document explains how to publish and consume the analytics-sku package from GitHub Packages using our WVC-compliant versioning strategy.
 
 ## Overview
 
@@ -10,60 +10,101 @@ The `@amuaapps/analytics-sku` package is published to GitHub Packages npm regist
 https://npm.pkg.github.com/@amuaapps/analytics-sku
 ```
 
+## WVC-Compliant Publishing Strategy
+
+We follow a **branch-based versioning** strategy that maps to environments:
+
+| Branch | Environment | Version Format | Dist-tag | Example |
+|--------|-------------|----------------|----------|---------|
+| `develop` | Development | `X.Y.Z-pr.N` | `dev` | `0.1.0-pr.1` |
+| `release` | Staging | `X.Y.Z-rc.N` | `rc` | `0.1.0-rc.1` |
+| `main` | Production | `X.Y.Z` | `latest` | `0.1.0` |
+
+### Version Numbering Rules
+
+- **Base version** is defined in `package.json`
+- **Prerelease counter** (N) auto-increments based on existing git tags
+- **Dist-tags** ensure non-production versions don't become default
+
 ## Publishing (Maintainers)
-
-### Prerequisites
-
-1. **GitHub Personal Access Token** with `write:packages` scope
-2. **Maintainer access** to the `amuaapps/analytics-sku` repository
-3. **NPM authentication** configured
-
-### Setup Authentication
-
-Create a `.npmrc` file in your home directory (`~/.npmrc`):
-
-```
-@amuaapps:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-```
-
-**Generate a token:**
-1. Go to https://github.com/settings/tokens
-2. Click "Generate new token (classic)"
-3. Select scopes: `write:packages`, `read:packages`
-4. Copy the token and replace `YOUR_GITHUB_TOKEN` above
-
-### Manual Publishing
-
-```bash
-# Ensure you're on the correct branch
-git checkout main
-
-# Update version (see VERSIONING.md)
-npm version patch  # or minor, or major
-
-# Build the package
-npm run build
-
-# Publish to GitHub Packages
-npm publish
-```
 
 ### Automated Publishing (Recommended)
 
-Publishing is automated via GitHub Actions when you push a git tag:
+Publishing is **fully automated** via GitHub Actions. Simply push to the appropriate branch:
+
+#### Development Release (Prerelease)
 
 ```bash
-# Create and push a version tag
-npm version patch
-git push origin main --tags
+# Merge your changes to develop
+git checkout develop
+git merge feature/my-feature
+git push origin develop
 ```
 
-The GitHub Actions workflow will:
-1. Run tests and linting
-2. Build the package
-3. Publish to GitHub Packages
-4. Create a GitHub Release
+**Result:** Publishes `X.Y.Z-pr.N` with `dev` dist-tag
+
+#### Staging Release (Release Candidate)
+
+```bash
+# Merge develop to release
+git checkout release
+git merge develop
+git push origin release
+```
+
+**Result:** Publishes `X.Y.Z-rc.N` with `rc` dist-tag
+
+#### Production Release (Stable)
+
+```bash
+# Merge release to main
+git checkout main
+git merge release
+git push origin main
+```
+
+**Result:** Publishes `X.Y.Z` with `latest` dist-tag
+
+### What the Workflow Does
+
+The `publish-package.yml` workflow automatically:
+
+1. **Determines version** based on branch and existing tags
+2. **Runs full test suite** (type check, lint, format, tests with coverage)
+3. **Generates types** from JSON schemas
+4. **Validates event catalog**
+5. **Builds the package**
+6. **Publishes to GitHub Packages** with appropriate dist-tag
+7. **Creates git tag** (e.g., `v0.1.0-pr.1`)
+8. **Creates GitHub Release** with installation instructions
+
+### Path Filters
+
+The workflow only triggers on changes to:
+- `package.json` / `package-lock.json`
+- `src/**` (source code)
+- `schemas/**` (JSON schemas)
+- `scripts/**` (build scripts)
+- `tsconfig.json` / `tsup.config.ts` (build config)
+- `.github/workflows/publish-package.yml` (workflow itself)
+
+**Infrastructure-only changes do NOT trigger publishing.**
+
+### Updating Base Version
+
+To bump the base version in `package.json`:
+
+```bash
+# Update package.json version
+npm version minor --no-git-tag-version
+
+# Commit the change
+git add package.json
+git commit -m "chore: bump version to 0.2.0"
+git push origin develop
+```
+
+The next publish will use the new base version.
 
 ## Installing (Consumers)
 
@@ -101,20 +142,30 @@ Create `~/.npmrc` in your home directory:
 
 ### Install the Package
 
+#### Latest Stable (Production)
+
 ```bash
+npm install @amuaapps/analytics-sku@latest
+# or simply
 npm install @amuaapps/analytics-sku
 ```
 
-### Install Specific Version
+#### Release Candidate (Staging)
 
 ```bash
-npm install @amuaapps/analytics-sku@1.2.3
+npm install @amuaapps/analytics-sku@rc
 ```
 
-### Install Pre-release Version
+#### Development Prerelease
 
 ```bash
-npm install @amuaapps/analytics-sku@next
+npm install @amuaapps/analytics-sku@dev
+```
+
+#### Specific Version
+
+```bash
+npm install @amuaapps/analytics-sku@0.1.0-rc.1
 ```
 
 ## CI/CD Integration
@@ -171,22 +222,27 @@ npm ci
 1. Regenerate token with `write:packages` scope
 2. Update `.npmrc` with new token
 
-## Package Versions
+## Package Versions & Dist-tags
 
-### Latest Stable
+### Available Dist-tags
 
-```bash
-npm install @amuaapps/analytics-sku@latest
-```
+| Dist-tag | Branch | Description | Stability |
+|----------|--------|-------------|-----------|
+| `latest` | `main` | Production-ready stable releases | ✅ Stable |
+| `rc` | `release` | Release candidates for staging | ⚠️ Pre-release |
+| `dev` | `develop` | Development prereleases | 🚧 Unstable |
 
-### Pre-release Tags
-
-- `next`: Latest from `develop` branch
-- `beta`: Beta releases
-- `rc`: Release candidates
+### Viewing Available Versions
 
 ```bash
-npm install @amuaapps/analytics-sku@next
+# View all published versions
+npm view @amuaapps/analytics-sku versions
+
+# View latest version for each dist-tag
+npm view @amuaapps/analytics-sku dist-tags
+
+# View latest stable version
+npm view @amuaapps/analytics-sku version
 ```
 
 ## Security Best Practices

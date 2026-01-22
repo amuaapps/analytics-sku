@@ -1,0 +1,182 @@
+name: Publish Package to GitHub Packages
+
+on:
+  push:
+    branches:
+      - develop
+      - release
+      - main
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - "schemas/**"
+      - "scripts/**"
+      - "tsconfig.json"
+      - "tsup.config.ts"
+      - ".github/workflows/publish-package.yml"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || github.ref_name == 'release' && 'staging' || 'development' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://npm.pkg.github.com"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine version and dist-tag
+        id: version
+        run: |
+          BASE_VERSION=$(node -p "require('./package.json').version")
+          BRANCH="${{ github.ref_name }}"
+          
+          echo "📦 Base version from package.json: $BASE_VERSION"
+          echo "🌿 Branch: $BRANCH"
+          
+          if [ "$BRANCH" = "main" ]; then
+            # main → stable X.Y.Z with 'latest' dist-tag
+            VERSION="$BASE_VERSION"
+            DIST_TAG="latest"
+            IS_PRERELEASE="false"
+            echo "✅ Publishing stable release"
+          elif [ "$BRANCH" = "release" ]; then
+            # release → release candidate X.Y.Z-rc.N with 'rc' dist-tag
+            RC_COUNT=$(git tag -l "v${BASE_VERSION}-rc.*" | wc -l | tr -d ' ')
+            RC_NUM=$((RC_COUNT + 1))
+            VERSION="${BASE_VERSION}-rc.${RC_NUM}"
+            DIST_TAG="rc"
+            IS_PRERELEASE="true"
+            echo "🔄 Publishing release candidate"
+          elif [ "$BRANCH" = "develop" ]; then
+            # develop → prerelease X.Y.Z-pr.N with 'dev' dist-tag
+            PR_COUNT=$(git tag -l "v${BASE_VERSION}-pr.*" | wc -l | tr -d ' ')
+            PR_NUM=$((PR_COUNT + 1))
+            VERSION="${BASE_VERSION}-pr.${PR_NUM}"
+            DIST_TAG="dev"
+            IS_PRERELEASE="true"
+            echo "🚧 Publishing prerelease"
+          else
+            echo "❌ Unknown branch: $BRANCH"
+            exit 1
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "dist_tag=$DIST_TAG" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "git_tag=v$VERSION" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo "📋 Version Info:"
+          echo "  Version: $VERSION"
+          echo "  Dist-tag: $DIST_TAG"
+          echo "  Prerelease: $IS_PRERELEASE"
+          echo "  Git tag: v$VERSION"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          echo "✅ Updated package.json to version ${{ steps.version.outputs.version }}"
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Generate types from schemas
+        run: npm run generate:types
+
+      - name: Validate event catalog
+        run: npm run validate:catalog
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish to GitHub Packages
+        run: |
+          echo "📤 Publishing @amuaapps/analytics-sku@${{ steps.version.outputs.version }}"
+          echo "🏷️  Dist-tag: ${{ steps.version.outputs.dist_tag }}"
+          npm publish --tag ${{ steps.version.outputs.dist_tag }}
+          echo "✅ Package published successfully"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ steps.version.outputs.git_tag }} -m "Release ${{ steps.version.outputs.version }}"
+          git push origin ${{ steps.version.outputs.git_tag }}
+          echo "🏷️  Created and pushed tag: ${{ steps.version.outputs.git_tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.git_tag }}
+          name: ${{ steps.version.outputs.version }}
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+          generate_release_notes: true
+          body: |
+            ## 📦 Package Information
+            
+            **Version:** `${{ steps.version.outputs.version }}`  
+            **Dist-tag:** `${{ steps.version.outputs.dist_tag }}`  
+            **Branch:** `${{ github.ref_name }}`  
+            **Environment:** `${{ github.ref_name == 'main' && 'production' || github.ref_name == 'release' && 'staging' || 'development' }}`
+            
+            ## 📥 Installation
+            
+            ```bash
+            npm install @amuaapps/analytics-sku@${{ steps.version.outputs.dist_tag }}
+            ```
+            
+            Or install a specific version:
+            
+            ```bash
+            npm install @amuaapps/analytics-sku@${{ steps.version.outputs.version }}
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Summary
+        run: |
+          echo "## 🎉 Package Published Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Version** | \`${{ steps.version.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Dist-tag** | \`${{ steps.version.outputs.dist_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Environment** | \`${{ github.ref_name == 'main' && 'production' || github.ref_name == 'release' && 'staging' || 'development' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Prerelease** | \`${{ steps.version.outputs.is_prerelease }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Git Tag** | \`${{ steps.version.outputs.git_tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 Install Command" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "npm install @amuaapps/analytics-sku@${{ steps.version.outputs.dist_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
