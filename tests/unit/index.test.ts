@@ -33,7 +33,9 @@ describe("taxonomy/index.ts exports", () => {
 
   it("eventRegistry contains expected events", () => {
     expect(taxonomyIndex.eventRegistry["web.page_viewed@1"]).toBeDefined();
-    expect(taxonomyIndex.eventRegistry["checkout.payment_submitted@1"]).toBeDefined();
+    expect(
+      taxonomyIndex.eventRegistry["checkout.payment_submitted@1"]
+    ).toBeDefined();
   });
 });
 
