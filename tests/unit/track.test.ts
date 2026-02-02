@@ -51,11 +51,15 @@ describe("track", () => {
       domain: "web",
     };
 
-    const event = track(eventDef, {}, {
-      sessionId: "test-session",
-      userId: "user-123",
-      source: { appId: "test-app", platform: "web", env: "test" },
-    });
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        userId: "user-123",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      }
+    );
 
     expect(event.actor.userId).toBe("user-123");
     expect(event.actor.anonymousId).toBe("test-session");
@@ -68,15 +72,19 @@ describe("track", () => {
       domain: "web",
     };
 
-    const event = track(eventDef, {}, {
-      sessionId: "test-session",
-      source: { appId: "test-app", platform: "web", env: "test" },
-      consent: {
-        analytics: true,
-        experimentation: false,
-        personalization: true,
-      },
-    });
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        source: { appId: "test-app", platform: "web", env: "test" },
+        consent: {
+          analytics: true,
+          experimentation: false,
+          personalization: true,
+        },
+      }
+    );
 
     expect(event.consent).toBeDefined();
     expect(event.consent?.analytics).toBe(true);
@@ -105,11 +113,15 @@ describe("track", () => {
       domain: "web",
     };
 
-    const event = track(eventDef, {}, {
-      sessionId: "test-session",
-      source: { appId: "test-app", platform: "web", env: "test" },
-      context: { locale: "fr-CA" },
-    });
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        source: { appId: "test-app", platform: "web", env: "test" },
+        context: { locale: "fr-CA" },
+      }
+    );
 
     expect(event.context?.locale).toBe("fr-CA");
     expect(event.context?.sessionId).toBe("test-session");

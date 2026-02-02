@@ -17,6 +17,7 @@ export default defineConfig({
         "scripts/",
         ".eslintrc.cjs",
         "eslint-rules/",
+        "**/types.ts",
       ],
       thresholds: {
         lines: 80,

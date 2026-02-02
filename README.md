@@ -1,13 +1,19 @@
 # @amuaapps/analytics-sku
 
-Type-safe analytics SDK for Amua Apps with schema-driven event tracking.
+Type-safe analytics SDK for Amua Apps with schema-driven event tracking, aligned with analytics-service ingest contract.
+
+## ⚠️ Breaking Changes in v2.0
+
+Version 2.0 introduces a complete redesign of the event envelope. See [MIGRATION.md](./docs/MIGRATION.md) for upgrade instructions.
 
 ## Features
 
 - 🔒 **Type-safe event tracking** - No free-form event strings allowed
-- 📋 **JSON Schema validation** - Runtime validation of event payloads
+- 📋 **JSON Schema validation** - Runtime validation of event payloads with snake_case keys
 - 🎯 **Domain-driven taxonomy** - Organized event catalog by business domain
-- 🔄 **Automatic context injection** - URL, referrer, locale, viewport automatically captured
+- � **Privacy-minimized context** - No full URLs, no user agents, referrer host only
+- 🆔 **Actor model** - Unified userId/anonymousId for session stitching
+- ✅ **Consent management** - Built-in GDPR/privacy consent tracking
 - 🚀 **HTTP transport with retries** - Reliable event delivery with exponential backoff
 - 📦 **Subpath exports** - Import only what you need (`@amuaapps/analytics-sku/core`, `/taxonomy`)
 
@@ -28,26 +34,66 @@ Add to your `.npmrc`:
 ## Quick Start
 
 ```typescript
-import { track, createTransport } from "@amuaapps/analytics-sku/core";
+import { track, page, identify } from "@amuaapps/analytics-sku/core";
 import { eventRegistry } from "@amuaapps/analytics-sku/taxonomy";
 
-// Configure transport
+// Track a standard event
+const trackEvent = track(
+  eventRegistry["web.session_started@1"],
+  { 
+    utm_source: "google",
+    utm_campaign: "summer_sale",
+    landing_page: "/products"
+  },
+  {
+    sessionId: "session-123",
+    source: { 
+      appId: "my-app",
+      platform: "web",
+      env: "production",
+      appVersion: "1.0.0"
+    },
+    consent: {
+      analytics: true,
+      experimentation: false,
+      personalization: false
+    }
+  }
+);
+
+// Track a page view
+const pageEvent = page(
+  eventRegistry["web.page_viewed@1"],
+  { 
+    page_path: "/products",
+    page_title: "Products",
+    page_category: "catalog"
+  },
+  {
+    sessionId: "session-123",
+    source: { appId: "my-app", platform: "web", env: "production" }
+  }
+);
+
+// Identify a user
+const identifyEvent = identify(
+  { 
+    email: "user@example.com",
+    name: "John Doe"
+  },
+  {
+    sessionId: "session-123",
+    userId: "user-456",
+    source: { appId: "my-app", platform: "web", env: "production" }
+  }
+);
+
+// Send events (transport interface unchanged)
 const transport = createTransport({
   ingestUrl: "https://analytics.example.com/ingest",
 });
 
-// Track an event
-const envelope = track(
-  eventRegistry["web.page_viewed@1"],
-  { page: "/home", title: "Home Page" },
-  {
-    sessionId: "session-123",
-    source: { application: "my-app", version: "1.0.0" },
-  }
-);
-
-// Send to analytics service
-await transport.send(envelope);
+await transport.send(trackEvent);
 ```
 
 ## Project Structure

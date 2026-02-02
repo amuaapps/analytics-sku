@@ -1,4 +1,4 @@
-import type { EventEnvelope } from "./types.js";
+import type { IngestEvent } from "./types.js";
 
 export interface TransportOptions {
   ingestUrl?: string;
@@ -6,11 +6,11 @@ export interface TransportOptions {
   maxRetries?: number;
   retryDelayMs?: number;
   queueSize?: number;
-  onError?: (error: Error, event: EventEnvelope) => void;
+  onError?: (error: Error, event: IngestEvent) => void;
 }
 
 export interface Transport {
-  send: (event: EventEnvelope) => Promise<void>;
+  send: (event: IngestEvent) => Promise<void>;
   flush: () => Promise<void>;
 }
 
@@ -24,12 +24,9 @@ export function createTransport(options: TransportOptions = {}): Transport {
     onError,
   } = options;
 
-  const queue: EventEnvelope[] = [];
+  const queue: IngestEvent[] = [];
 
-  async function sendWithRetry(
-    event: EventEnvelope,
-    attempt = 0
-  ): Promise<void> {
+  async function sendWithRetry(event: IngestEvent, attempt = 0): Promise<void> {
     if (disabled) {
       return;
     }
@@ -67,7 +64,7 @@ export function createTransport(options: TransportOptions = {}): Transport {
   }
 
   return {
-    async send(event: EventEnvelope): Promise<void> {
+    async send(event: IngestEvent): Promise<void> {
       if (queue.length >= queueSize) {
         queue.shift();
       }

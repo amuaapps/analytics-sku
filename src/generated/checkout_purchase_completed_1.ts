@@ -20,7 +20,12 @@ export interface PurchaseCompletedEvent {
   /**
    * Payment method used
    */
-  payment_method?: "credit_card" | "debit_card" | "paypal" | "apple_pay" | "google_pay";
+  payment_method?:
+    | "credit_card"
+    | "debit_card"
+    | "paypal"
+    | "apple_pay"
+    | "google_pay";
   /**
    * Items in the order
    */
