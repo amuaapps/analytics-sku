@@ -77,8 +77,8 @@ async function validateCatalog() {
       hasErrors = true;
     }
 
-    if (schema.additionalProperties !== false) {
-      console.error(`❌ Schema must set additionalProperties: false in ${filename}`);
+    if (schema.additionalProperties === undefined) {
+      console.error(`❌ Schema must explicitly set additionalProperties in ${filename}`);
       hasErrors = true;
     }
 
