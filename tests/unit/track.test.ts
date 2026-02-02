@@ -1,48 +1,162 @@
 import { describe, it, expect } from "vitest";
-import { track } from "../../src/core/track.js";
+import { track, page, identify } from "../../src/core/track.js";
 import type { EventDefinition } from "../../src/taxonomy/types.js";
 
 describe("track", () => {
-  it("creates event envelope with required fields", () => {
-    const eventDef: EventDefinition<{ page: string }> = {
-      eventName: "web.page_viewed",
-      eventVersion: 1,
-      schemaId: "web/page_viewed@1",
+  it("creates track event with required fields", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
       domain: "web",
     };
 
-    const payload = { page: "/home" };
-    const envelope = track(eventDef, payload, {
+    const properties = { utm_source: "google" };
+    const event = track(eventDef, properties, {
       sessionId: "test-session",
-      source: { application: "test-app" },
+      source: { appId: "test-app", platform: "web", env: "test" },
     });
 
-    expect(envelope.specVersion).toBe("1.0.0");
-    expect(envelope.eventName).toBe("web.page_viewed");
-    expect(envelope.eventVersion).toBe(1);
-    expect(envelope.schemaId).toBe("web/page_viewed@1");
-    expect(envelope.payload).toEqual(payload);
-    expect(envelope.correlation.sessionId).toBe("test-session");
-    expect(envelope.source.application).toBe("test-app");
-    expect(envelope.timestamp).toBeDefined();
+    expect(event.schemaVersion).toBe("1.0.0");
+    expect(event.type).toBe("track");
+    expect(event.name).toBe("web.session_started");
+    expect(event.eventId).toBeDefined();
+    expect(event.occurredAt).toBeDefined();
+    expect(event.properties).toEqual(properties);
+    expect(event.context?.sessionId).toBe("test-session");
+    expect(event.source.appId).toBe("test-app");
+    expect(event.actor.anonymousId).toBe("test-session");
   });
 
-  it("includes context when available", () => {
-    const eventDef: EventDefinition = {
-      eventName: "test.event",
-      eventVersion: 1,
-      schemaId: "test/event@1",
-      domain: "test",
+  it("creates page event when type is page", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.page_viewed",
+      type: "page",
+      domain: "web",
     };
 
-    const envelope = track(
-      eventDef,
-      {},
-      {
-        context: { locale: "en-US" },
-      }
-    );
+    const properties = { page_path: "/home" };
+    const event = track(eventDef, properties, {
+      sessionId: "test-session",
+      source: { appId: "test-app", platform: "web", env: "test" },
+    });
 
-    expect(envelope.context.locale).toBe("en-US");
+    expect(event.type).toBe("page");
+    expect(event.name).toBe("web.page_viewed");
+  });
+
+  it("includes userId when provided", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(eventDef, {}, {
+      sessionId: "test-session",
+      userId: "user-123",
+      source: { appId: "test-app", platform: "web", env: "test" },
+    });
+
+    expect(event.actor.userId).toBe("user-123");
+    expect(event.actor.anonymousId).toBe("test-session");
+  });
+
+  it("includes consent when provided", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(eventDef, {}, {
+      sessionId: "test-session",
+      source: { appId: "test-app", platform: "web", env: "test" },
+      consent: {
+        analytics: true,
+        experimentation: false,
+        personalization: true,
+      },
+    });
+
+    expect(event.consent).toBeDefined();
+    expect(event.consent?.analytics).toBe(true);
+    expect(event.consent?.experimentation).toBe(false);
+    expect(event.consent?.personalization).toBe(true);
+  });
+
+  it("throws error when sessionId is missing", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    expect(() => {
+      track(eventDef, {}, {
+        source: { appId: "test-app", platform: "web", env: "test" },
+      } as any);
+    }).toThrow("sessionId is required");
+  });
+
+  it("merges custom context with auto context", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(eventDef, {}, {
+      sessionId: "test-session",
+      source: { appId: "test-app", platform: "web", env: "test" },
+      context: { locale: "fr-CA" },
+    });
+
+    expect(event.context?.locale).toBe("fr-CA");
+    expect(event.context?.sessionId).toBe("test-session");
+  });
+});
+
+describe("page", () => {
+  it("creates page event", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.page_viewed",
+      type: "page",
+      domain: "web",
+    };
+
+    const properties = { page_path: "/products" };
+    const event = page(eventDef, properties, {
+      sessionId: "test-session",
+      source: { appId: "test-app", platform: "web", env: "test" },
+    });
+
+    expect(event.type).toBe("page");
+    expect(event.name).toBe("web.page_viewed");
+    expect(event.properties).toEqual(properties);
+  });
+});
+
+describe("identify", () => {
+  it("creates identify event", () => {
+    const traits = { email: "user@example.com", name: "Test User" };
+    const event = identify(traits, {
+      sessionId: "test-session",
+      userId: "user-123",
+      source: { appId: "test-app", platform: "web", env: "test" },
+    });
+
+    expect(event.type).toBe("identify");
+    expect(event.eventId).toBeDefined();
+    expect(event.traits).toEqual(traits);
+    expect(event.actor.userId).toBe("user-123");
+  });
+
+  it("throws error when sessionId is missing", () => {
+    expect(() => {
+      identify({}, {
+        userId: "user-123",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      } as any);
+    }).toThrow("sessionId is required");
   });
 });

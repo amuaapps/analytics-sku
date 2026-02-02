@@ -4,27 +4,33 @@
   "title": "Page Viewed Event",
   "description": "Fired when a user views a page",
   "type": "object",
-  "required": ["page", "title"],
   "properties": {
-    "page": {
+    "page_path": {
       "type": "string",
-      "description": "Page path (e.g., /home, /products/123)",
-      "minLength": 1
+      "description": "Page path (e.g., /home, /products/123)"
     },
-    "title": {
+    "page_title": {
       "type": "string",
-      "description": "Page title",
-      "minLength": 1
+      "description": "Page title"
     },
-    "category": {
+    "page_category": {
       "type": "string",
       "description": "Page category (e.g., landing, product, checkout)"
     },
-    "properties": {
+    "navigation": {
       "type": "object",
-      "description": "Additional page-specific properties",
-      "additionalProperties": true
+      "description": "Navigation context",
+      "properties": {
+        "from_path": {
+          "type": "string",
+          "description": "Previous page path"
+        },
+        "referrer_host": {
+          "type": "string",
+          "description": "Referrer hostname"
+        }
+      }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }

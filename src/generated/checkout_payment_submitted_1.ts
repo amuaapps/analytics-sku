@@ -20,12 +20,7 @@ export interface PaymentSubmittedEvent {
   /**
    * Payment method used
    */
-  paymentMethod:
-    | "credit_card"
-    | "debit_card"
-    | "paypal"
-    | "apple_pay"
-    | "google_pay";
+  paymentMethod: "credit_card" | "debit_card" | "paypal" | "apple_pay" | "google_pay";
   /**
    * Items in the order
    */

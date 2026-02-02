@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "checkout/purchase_completed@1",
+  "title": "Purchase Completed Event",
+  "description": "Fired when a purchase is successfully completed",
+  "type": "object",
+  "required": ["order_id", "total_amount", "currency"],
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Unique order identifier",
+      "minLength": 1
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total purchase amount",
+      "minimum": 0
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency code",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Payment method used",
+      "enum": ["credit_card", "debit_card", "paypal", "apple_pay", "google_pay"]
+    },
+    "items": {
+      "type": "array",
+      "description": "Items in the order",
+      "items": {
+        "type": "object",
+        "required": ["product_id", "quantity", "price"],
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "description": "Product identifier"
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Product name"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "discount_amount": {
+      "type": "number",
+      "description": "Total discount applied",
+      "minimum": 0
+    },
+    "tax_amount": {
+      "type": "number",
+      "description": "Total tax amount",
+      "minimum": 0
+    },
+    "shipping_amount": {
+      "type": "number",
+      "description": "Shipping cost",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": true
+}

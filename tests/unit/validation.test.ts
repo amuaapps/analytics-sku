@@ -3,10 +3,10 @@ import { validate, validateOrThrow } from "../../src/core/validation.js";
 
 describe("validate", () => {
   describe("web.page_viewed@1", () => {
-    it("validates correct payload", () => {
+    it("validates correct payload with snake_case keys", () => {
       const payload = {
-        page: "/home",
-        title: "Home Page",
+        page_path: "/home",
+        page_title: "Home Page",
       };
 
       const result = validate("web/page_viewed@1", payload);
@@ -15,13 +15,14 @@ describe("validate", () => {
       expect(result.errors).toBeUndefined();
     });
 
-    it("validates payload with optional fields", () => {
+    it("validates payload with navigation object", () => {
       const payload = {
-        page: "/products",
-        title: "Products",
-        category: "catalog",
-        properties: {
-          featured: true,
+        page_path: "/products",
+        page_title: "Products",
+        page_category: "catalog",
+        navigation: {
+          from_path: "/home",
+          referrer_host: "google.com",
         },
       };
 
@@ -30,53 +31,35 @@ describe("validate", () => {
       expect(result.valid).toBe(true);
     });
 
-    it("fails when required field is missing", () => {
+    it("validates empty payload (all fields optional)", () => {
+      const payload = {};
+
+      const result = validate("web/page_viewed@1", payload);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it("allows additional properties", () => {
       const payload = {
-        page: "/home",
+        page_path: "/home",
+        custom_field: "allowed",
       };
 
       const result = validate("web/page_viewed@1", payload);
 
-      expect(result.valid).toBe(false);
-      expect(result.errors).toBeDefined();
-      expect(result.errors?.length).toBeGreaterThan(0);
-      expect(result.errors?.[0]?.message).toContain("required");
+      expect(result.valid).toBe(true);
     });
 
     it("fails when field has wrong type", () => {
       const payload = {
-        page: 123,
-        title: "Home",
+        page_path: 123,
+        page_title: "Home",
       };
 
       const result = validate("web/page_viewed@1", payload);
 
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-    });
-
-    it("fails when additional properties are present", () => {
-      const payload = {
-        page: "/home",
-        title: "Home",
-        invalidField: "not allowed",
-      };
-
-      const result = validate("web/page_viewed@1", payload);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toBeDefined();
-    });
-
-    it("fails when field is empty string", () => {
-      const payload = {
-        page: "",
-        title: "Home",
-      };
-
-      const result = validate("web/page_viewed@1", payload);
-
-      expect(result.valid).toBe(false);
     });
   });
 
@@ -182,8 +165,8 @@ describe("validate", () => {
   describe("validateOrThrow", () => {
     it("does not throw for valid payload", () => {
       const payload = {
-        page: "/home",
-        title: "Home",
+        page_path: "/home",
+        page_title: "Home",
       };
 
       expect(() => {
@@ -191,9 +174,10 @@ describe("validate", () => {
       }).not.toThrow();
     });
 
-    it("throws for invalid payload", () => {
+    it("throws for invalid payload with wrong type", () => {
       const payload = {
-        page: "/home",
+        page_path: 123,
+        page_title: "Home",
       };
 
       expect(() => {
@@ -203,8 +187,8 @@ describe("validate", () => {
 
     it("throws with descriptive error message", () => {
       const payload = {
-        page: 123,
-        title: "Home",
+        page_path: 123,
+        page_title: "Home",
       };
 
       expect(() => {

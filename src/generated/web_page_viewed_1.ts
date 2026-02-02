@@ -8,19 +8,28 @@ export interface PageViewedEvent {
   /**
    * Page path (e.g., /home, /products/123)
    */
-  page: string;
+  page_path?: string;
   /**
    * Page title
    */
-  title: string;
+  page_title?: string;
   /**
    * Page category (e.g., landing, product, checkout)
    */
-  category?: string;
+  page_category?: string;
   /**
-   * Additional page-specific properties
+   * Navigation context
    */
-  properties?: {
+  navigation?: {
+    /**
+     * Previous page path
+     */
+    from_path?: string;
+    /**
+     * Referrer hostname
+     */
+    referrer_host?: string;
     [k: string]: any | undefined;
   };
+  [k: string]: any | undefined;
 }

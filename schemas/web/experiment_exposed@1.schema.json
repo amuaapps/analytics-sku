@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web/experiment_exposed@1",
+  "title": "Experiment Exposed Event",
+  "description": "Fired when a user is exposed to an A/B test experiment",
+  "type": "object",
+  "required": ["experiment_id", "variant_id"],
+  "properties": {
+    "experiment_id": {
+      "type": "string",
+      "description": "Unique experiment identifier",
+      "minLength": 1
+    },
+    "experiment_name": {
+      "type": "string",
+      "description": "Human-readable experiment name"
+    },
+    "variant_id": {
+      "type": "string",
+      "description": "Variant identifier (e.g., control, variant_a)",
+      "minLength": 1
+    },
+    "variant_name": {
+      "type": "string",
+      "description": "Human-readable variant name"
+    }
+  },
+  "additionalProperties": true
+}

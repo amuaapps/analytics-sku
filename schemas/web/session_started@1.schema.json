@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "web/session_started@1",
+  "title": "Session Started Event",
+  "description": "Fired when a new session is started (captures attribution)",
+  "type": "object",
+  "properties": {
+    "utm_source": {
+      "type": "string",
+      "description": "UTM source parameter"
+    },
+    "utm_medium": {
+      "type": "string",
+      "description": "UTM medium parameter"
+    },
+    "utm_campaign": {
+      "type": "string",
+      "description": "UTM campaign parameter"
+    },
+    "utm_term": {
+      "type": "string",
+      "description": "UTM term parameter"
+    },
+    "utm_content": {
+      "type": "string",
+      "description": "UTM content parameter"
+    },
+    "referrer_host": {
+      "type": "string",
+      "description": "Referrer hostname"
+    },
+    "landing_page": {
+      "type": "string",
+      "description": "Landing page path"
+    }
+  },
+  "additionalProperties": true
+}

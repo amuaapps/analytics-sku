@@ -11,10 +11,31 @@
       "version": 1,
       "owner": "Platform Team"
     },
+    "web/session_started@1": {
+      "file": "web/session_started@1.schema.json",
+      "domain": "web",
+      "eventName": "session_started",
+      "version": 1,
+      "owner": "Platform Team"
+    },
+    "web/experiment_exposed@1": {
+      "file": "web/experiment_exposed@1.schema.json",
+      "domain": "web",
+      "eventName": "experiment_exposed",
+      "version": 1,
+      "owner": "Platform Team"
+    },
     "checkout/payment_submitted@1": {
       "file": "checkout/payment_submitted@1.schema.json",
       "domain": "checkout",
       "eventName": "payment_submitted",
+      "version": 1,
+      "owner": "Commerce Team"
+    },
+    "checkout/purchase_completed@1": {
+      "file": "checkout/purchase_completed@1.schema.json",
+      "domain": "checkout",
+      "eventName": "purchase_completed",
       "version": 1,
       "owner": "Commerce Team"
     }

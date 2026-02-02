@@ -1,5 +1,17 @@
-export { track } from "./track.js";
-export type { TrackOptions, EventEnvelope } from "./types.js";
+export { track, page, identify } from "./track.js";
+export type {
+  TrackOptions,
+  TrackEvent,
+  PageEvent,
+  IdentifyEvent,
+  IngestEvent,
+  IngestRequestEnvelope,
+  Source,
+  Actor,
+  Context,
+  Consent,
+  SCHEMA_VERSION,
+} from "./types.js";
 export { createTransport } from "./transport.js";
 export type { Transport, TransportOptions } from "./transport.js";
 export { validate, validateOrThrow } from "./validation.js";

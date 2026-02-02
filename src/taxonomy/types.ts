@@ -1,7 +1,6 @@
 export interface EventDefinition<T = unknown> {
-  eventName: string;
-  eventVersion: number;
-  schemaId: string;
+  name: string;
+  type: "track" | "page" | "identify";
   domain: string;
   validate?: (payload: T) => boolean;
 }
