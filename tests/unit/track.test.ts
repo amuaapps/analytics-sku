@@ -171,4 +171,127 @@ describe("identify", () => {
       } as any);
     }).toThrow("sessionId is required");
   });
+
+  it("includes consent when provided", () => {
+    const event = identify(
+      { email: "user@example.com" },
+      {
+        sessionId: "test-session",
+        userId: "user-123",
+        source: { appId: "test-app", platform: "web", env: "test" },
+        consent: {
+          analytics: true,
+          experimentation: true,
+          personalization: false,
+        },
+      }
+    );
+
+    expect(event.consent).toBeDefined();
+    expect(event.consent?.analytics).toBe(true);
+    expect(event.consent?.experimentation).toBe(true);
+    expect(event.consent?.personalization).toBe(false);
+  });
+});
+
+describe("edge cases and fallbacks", () => {
+  it("generates valid UUID format", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      }
+    );
+
+    expect(event.eventId).toBeDefined();
+    expect(event.eventId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    );
+  });
+
+  it("handles missing anonymousId by using sessionId", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      }
+    );
+
+    expect(event.actor.anonymousId).toBe("test-session");
+  });
+
+  it("uses provided anonymousId over sessionId", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        anonymousId: "custom-anon-id",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      }
+    );
+
+    expect(event.actor.anonymousId).toBe("custom-anon-id");
+  });
+
+  it("sets userId to null when not provided", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+        source: { appId: "test-app", platform: "web", env: "test" },
+      }
+    );
+
+    expect(event.actor.userId).toBeNull();
+  });
+
+  it("uses default source values when not provided", () => {
+    const eventDef: EventDefinition<Record<string, unknown>> = {
+      name: "web.session_started",
+      type: "track",
+      domain: "web",
+    };
+
+    const event = track(
+      eventDef,
+      {},
+      {
+        sessionId: "test-session",
+      }
+    );
+
+    expect(event.source.appId).toBe("unknown");
+    expect(event.source.platform).toBe("web");
+    expect(event.source.env).toBe("production");
+  });
 });
